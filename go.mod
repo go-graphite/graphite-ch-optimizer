@@ -1,4 +1,4 @@
-module github.com/innogames/graphite-ch-optimizer
+module github.com/go-graphite/graphite-ch-optimizer
 
 go 1.22.0
 

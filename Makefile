@@ -1,7 +1,8 @@
 NAME = graphite-ch-optimizer
+MODULE = github.com/go-graphite/$(NAME)
 VERSION = $(shell git describe --long --tags 2>/dev/null | sed 's/^v//;s/\([^-]*-g\)/c\1/;s/-/./g')
 VENDOR = "System Administration <it@innogames.com>"
-URL = https://github.com/innogames/$(NAME)
+URL = https://$(MODULE)
 define DESC =
 'Service to optimize stale GraphiteMergeTree tables
  This software looking for tables with GraphiteMergeTree engine and evaluate if some of partitions should be optimized. It could work both as one-shot script and background daemon.'
@@ -9,9 +10,11 @@ endef
 GO_FILES = $(shell find -name '*.go')
 PKG_FILES = build/$(NAME)_$(VERSION)_amd64.deb build/$(NAME)-$(VERSION)-1.x86_64.rpm
 SUM_FILES = build/sha256sum build/md5sum
-MODULE = github.com/innogames/$(NAME)
 
 GO ?= go
+ifeq ("$(CGO_ENABLED)", "0")
+	GOFLAGS += -ldflags=-extldflags=-static
+endif
 export GO111MODULE := on
 
 .PHONY: all clean docker test version
