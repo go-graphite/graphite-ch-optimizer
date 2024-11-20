@@ -39,6 +39,9 @@ test:
 	$(GO) vet $(MODULE)
 	$(GO) test $(MODULE)
 
+static:
+	CGO_ENABLED=0 $(MAKE) $(NAME)
+
 docker:
 	docker build -t ghcr.io/go-graphite/$(NAME):latest .
 
