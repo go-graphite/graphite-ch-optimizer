@@ -43,7 +43,7 @@ static:
 	CGO_ENABLED=0 $(MAKE) $(NAME)
 
 docker:
-	docker build -t ghcr.io/go-graphite/$(NAME):latest .
+	docker build --label 'org.opencontainers.image.source=https://$(MODULE)' -t ghcr.io/go-graphite/$(NAME):latest .
 
 # we need it static
 .PHONY: gox-build
