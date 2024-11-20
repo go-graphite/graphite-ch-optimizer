@@ -1,0 +1,34 @@
+---
+name: ${NAME}
+description: ${DESCRIPTION}
+
+# Common packages config
+arch: "${ARCH}"  # amd64, arm64
+platform: "linux"
+version: "${VERSION_STRING}"
+maintainer: &m "Mikhail f. Shiryaev <mr.felixoid@gmail.com>"
+vendor: *m
+homepage: "https://github.com/go-graphite/${NAME}"
+license: "MIT"
+section: "admin"
+priority: "optional"
+
+contents:
+  - src: "packaging/${NAME}.service"
+    dst: "/lib/systemd/system/${NAME}.service"
+    expand: true
+  - src: out/config.toml.example
+    dst: /etc/${NAME}/config.toml.example
+    type: config|noreplace
+    expand: true
+  - src: "out/${NAME}-linux-${ARCH}"
+    dst: /usr/bin/${NAME}
+    expand: true
+    # docs
+  - src: LICENSE
+    dst: /usr/share/doc/${NAME}/LICENSE
+    expand: true
+
+scripts:
+  postinstall: packaging/postinst
+  preremove: packaging/prerm
