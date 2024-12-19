@@ -86,8 +86,6 @@ out/config.toml.example: $(NAME) | out
 
 nfpm: nfpm-deb nfpm-rpm
 
-PKG_ARCH = amd64 arm64
-
 nfpm-%: out/config.toml.example
 	$(MAKE) out/done/$(NAME)-$(VERSION)-amd64-$* ARCH=amd64 PACKAGER=$*
 	$(MAKE) out/done/$(NAME)-$(VERSION)-arm64-$* ARCH=arm64 PACKAGER=$*
