@@ -113,15 +113,19 @@ $(SUM_FILES): nfpm
 
 
 .ONESHELL:
+packagecloud-push-rpm: SHELL:=/bin/bash
+packagecloud-push-rpm: REPOS=$(shell echo el/{7..9})
 packagecloud-push-rpm: $(wildcard out/$(NAME)-$(VERSION)*.rpm)
-	for repo in el/{7..9}; do
+	for repo in $(REPOS); do
 		pkgcloud-push $(REPO)/$${repo} $^ || true
 	done
 
 .ONESHELL:
+packagecloud-push-deb: SHELL:=/bin/bash
+packagecloud-push-deb: REPOS=$(shell echo ubuntu/{bionic,focal,jammy,nomble} debian/{buster,bullseye,bookworm})
 packagecloud-push-deb: $(wildcard out/$(NAME)_$(VERSION)*.deb)
-	for repo in ubuntu/{bionic,focal,jammy,nomble} debian/{buster,bullseye,bookworm}; do
-		pkgcloud-push $(REPO)/$${repo}   $^ || true
+	for repo in $(REPOS); do
+		pkgcloud-push $(REPO)/$${repo} $^ || true
 	done
 
 packagecloud-push: nfpm
