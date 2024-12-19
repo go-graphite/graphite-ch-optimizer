@@ -94,5 +94,5 @@ jobs:
         run: |
           git fetch origin fix-releaser
           git checkout origin/fix-releaser -- Makefile
-          go install github.com/mlafeldt/pkgcloud/cmd/pkgcloud-push@e79e9efc
+          go install github.com/mlafeldt/pkgcloud/cmd/pkgcloud-push@afd7b4b2e6a1
           make packagecloud-stable
