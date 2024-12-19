@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go"
-	"github.com/pelletier/go-toml"
+	"github.com/pelletier/go-toml/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -267,7 +267,11 @@ func getConfig() Config {
 		logrus.Fatal("Can't get '--print-defaults' value")
 	}
 	if printDefaults {
-		t, err := toml.TreeFromMap(defaultConfig)
+		t := new(strings.Builder)
+		encoder := toml.NewEncoder(t)
+		encoder.SetIndentSymbol("  ")
+		encoder.SetIndentTables(true)
+		err := encoder.Encode(defaultConfig)
 		if err != nil {
 			logrus.Fatal(err)
 		}

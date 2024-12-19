@@ -12,7 +12,6 @@ SUM_FILES = build/sha256sum build/md5sum
 MODULE = github.com/innogames/$(NAME)
 
 GO ?= go
-export GOFLAGS +=  -mod=vendor
 export GO111MODULE := on
 
 .PHONY: all clean docker test version
