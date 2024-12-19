@@ -11,6 +11,7 @@ name: Create new release
         type: string
 jobs:
   docker:
+    needs: [build]
     name: Build image
     runs-on: ubuntu-latest
     # https://docs.github.com/en/actions/use-cases-and-examples/publishing-packages/publishing-docker-images#publishing-images-to-github-packages
@@ -83,6 +84,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          : && exit 0
           TAG="${{ inputs.ref && inputs.ref || github.event.release.tag_name }}"
           gh release upload --clobber --repo ${{ github.repository }} "$TAG" \
               out/*.deb out/*.rpm out/*sum
