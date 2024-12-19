@@ -93,6 +93,6 @@ jobs:
           PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
         run: |
           git fetch origin fix-releaser
-          git checkout fix-releaser -- Makefile
+          git checkout origin/fix-releaser -- Makefile
           go install github.com/mlafeldt/pkgcloud/cmd/pkgcloud-push@e79e9efc
           make packagecloud-stable
