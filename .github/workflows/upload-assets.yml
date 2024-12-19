@@ -41,7 +41,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ inputs.ref && inputs.ref || github.event.release.tag_name }}"
-          gh release upload --repo ${{ github.repository }} "$TAG" \
+          gh release upload --clobber --repo ${{ github.repository }} "$TAG" \
               out/*.deb out/*.rpm out/*sum
       - name: Upload packages to packagecloud.com
         env:
