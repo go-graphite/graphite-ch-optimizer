@@ -17,7 +17,7 @@ export GO111MODULE := on
 
 SRCS:=$(shell find . -name '*.go')
 
-.PHONY: all clean docker test version
+.PHONY: all clean docker test version _nfpm
 
 all: $(NAME)
 build: $(NAME)
@@ -84,16 +84,15 @@ artifact/%: out/% | artifact
 out/config.toml.example: $(NAME) | out
 	./$(NAME) --print-defaults > $@
 
-nfpm: nfpm-deb nfpm-rpm
-
-nfpm-%: out/config.toml.example
-	$(MAKE) out/done/$(NAME)-$(VERSION)-amd64-$* ARCH=amd64 PACKAGER=$*
-	$(MAKE) out/done/$(NAME)-$(VERSION)-arm64-$* ARCH=arm64 PACKAGER=$*
-
 .ONESHELL:
-out/done/$(NAME)-$(VERSION)%: nfpm.yaml | out/done gox-build
+nfpm:
+	@$(MAKE) _nfpm ARCH=amd64 PACKAGER=deb
+	@$(MAKE) _nfpm ARCH=arm64 PACKAGER=deb
+	@$(MAKE) _nfpm ARCH=amd64 PACKAGER=rpm
+	@$(MAKE) _nfpm ARCH=arm64 PACKAGER=rpm
+
+_nfpm: nfpm.yaml out/config.toml.example | out/done gox-build
 	@NAME=$(NAME) DESCRIPTION=$(DESCRIPTION) ARCH=$(ARCH) VERSION_STRING=$(VERSION) nfpm package --packager $(PACKAGER) --target out/
-	@touch $@
 
 packages: nfpm $(SUM_FILES)
 
@@ -105,3 +104,32 @@ $(SUM_FILES): nfpm
 #######
 # END #
 #######
+
+##############
+# PUBLISHING #
+##############
+
+# Use `go install github.com/mlafeldt/pkgcloud/cmd/pkgcloud-push`
+
+
+.ONESHELL:
+packagecloud-push-rpm: $(wildcard out/$(NAME)-$(VERSION)*.rpm)
+	for repo in el/{7..9}; do
+		pkgcloud-push $(REPO)/$${repo} $^ || true
+	done
+
+.ONESHELL:
+packagecloud-push-deb: $(wildcard out/$(NAME)_$(VERSION)*.deb)
+	for repo in ubuntu/{bionic,focal,jammy,nomble} debian/{buster,bullseye,bookworm}; do
+		pkgcloud-push $(REPO)/$${repo}   $^ || true
+	done
+
+packagecloud-push: nfpm
+	@$(MAKE) packagecloud-push-rpm
+	@$(MAKE) packagecloud-push-deb
+
+packagecloud-autobuilds:
+	$(MAKE) packagecloud-push REPO=go-graphite/autobuilds
+
+packagecloud-stable:
+	$(MAKE) packagecloud-push REPO=go-graphite/stable

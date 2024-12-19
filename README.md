@@ -1,3 +1,6 @@
+[![deb](https://img.shields.io/badge/deb-packagecloud.io-844fec.svg)](https://packagecloud.io/go-graphite/stable)
+[![rpm](https://img.shields.io/badge/rpm-packagecloud.io-844fec.svg)](https://packagecloud.io/go-graphite/stable)
+
 # Service to optimize stale GraphiteMergeTree tables
 When you use [GraphiteMergeTree](https://clickhouse.yandex/docs/en/operations/table_engines/graphitemergetree) in ClickHouse DBMS, it applies retention policies from `system.graphite_retentions` configuration during merge processes. Unfortunately, ClickHouse doesn't launch merges for partitions a) without active inserts or b) with only one part in. It means, that it never will watch for the actual retention scheme applied to partitions.  
 This software looking for tables with GraphiteMergeTree engine and evaluate if some of partitions should be optimized. It could work both as one-shot script and background daemon.
