@@ -1,0 +1,94 @@
+---
+name: Create new release
+'on':
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git tag to push the image'
+        required: true
+        type: string
+jobs:
+  docker:
+    name: Build image
+    runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/use-cases-and-examples/publishing-packages/publishing-docker-images#publishing-images-to-github-packages
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+      id-token: write
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          context: ${{ inputs.ref && 'git' || 'workflow' }}
+          images: ghcr.io/${{ github.repository }}
+          # create latest tag for branch events
+          flavor: |
+            latest=${{ inputs.ref && 'false' || 'auto' }}
+          tags: |
+            type=semver,pattern={{version}},value=${{inputs.ref}}
+            type=semver,pattern={{major}}.{{minor}},value=${{inputs.ref}}
+            type=semver,pattern={{major}}.{{minor}}.{{patch}},value=${{inputs.ref}}
+      - name: Login to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          # push for non-pr events
+          push: ${{ github.event_name != 'pull_request' }}
+          context: .
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  build:
+    name: Publish assets and packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout
+        with:
+          # Otherwise there's a risk to not get latest tag
+          # We hope, that the current commit at
+          # least 100 commits close to the latest release
+          fetch-depth: 100
+          fetch-tags: ${{ inputs.ref != '' }}
+          ref: ${{ inputs.ref }}
+      - name: Set up Go 1
+        uses: actions/setup-go@v5
+        with:
+          go-version: ^1
+      - name: Build packages
+        id: build
+        run: |
+          go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.40.0
+          make -e CGO_ENABLED=0 packages
+      - name: Upload release assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ inputs.ref && inputs.ref || github.event.release.tag_name }}"
+          gh release upload --clobber --repo ${{ github.repository }} "$TAG" \
+              out/*.deb out/*.rpm out/*sum
+      - name: Upload packages to packagecloud.com
+        env:
+          PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
+        run: |
+          go install github.com/mlafeldt/pkgcloud/cmd/pkgcloud-push@e79e9efc
+          make packagecloud-stable
