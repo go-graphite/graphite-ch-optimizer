@@ -114,15 +114,11 @@ $(SUM_FILES): nfpm
 
 .ONESHELL:
 packagecloud-push-rpm: $(wildcard out/$(NAME)-$(VERSION)*.rpm)
-	for repo in el/{7..9}; do
-		pkgcloud-push $(REPO)/$${repo} $^ || true
-	done
+	pkgcloud-push $(REPO)/rpm_any/rpm_any $^ || true
 
 .ONESHELL:
 packagecloud-push-deb: $(wildcard out/$(NAME)_$(VERSION)*.deb)
-	for repo in ubuntu/{bionic,focal,jammy,nomble} debian/{buster,bullseye,bookworm}; do
-		pkgcloud-push $(REPO)/$${repo}   $^ || true
-	done
+	pkgcloud-push $(REPO)/any/any $^ || true
 
 packagecloud-push: nfpm
 	@$(MAKE) packagecloud-push-rpm
